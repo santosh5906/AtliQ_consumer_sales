@@ -38,7 +38,7 @@ GROUP BY segment;
 
 #############################################################################################################################################
 
-#Reques 4: Follow-up: Which segment had the most increase in unique products in 2021 vs 2020? The final output contains these fields, segment product_count_2020 product_count_2021 differe
+#Request 4: Follow-up: Which segment had the most increase in unique products in 2021 vs 2020? The final output contains these fields, segment product_count_2020 product_count_2021 differe
 
  WITH cte4 AS(SELECT p.segment,COUNT(DISTINCT p.product_code) AS product_count_2020 FROM dim_product p
       INNER JOIN fact_sales_monthly s ON p.product_code=s.product_code WHERE fiscal_year=2020 
@@ -49,36 +49,43 @@ GROUP BY segment;
  SELECT cte4.segment,product_count_2020,product_count_2021,(product_count_2021-product_count_2020)
  AS Difference FROM cte4 INNER JOIN cte5 ON cte4.segment=cte5.segment ORDER BY Difference DESC;
 
-SELECT segment, 2020_table.product_count_2020, 2021_table.product_count_2021, (2021_table.product_count_2021 - 2020_table.product_count_2020) as difference
+##USING CASE
+SELECT 
+    dp.segment,
+    COUNT(DISTINCT CASE WHEN fs.fiscal_year = 2020 THEN dp.product_code END) AS product_count_2020,
+    COUNT(DISTINCT CASE WHEN fs.fiscal_year = 2021 THEN dp.product_code END) AS product_count_2021,
+    (COUNT(DISTINCT CASE WHEN fs.fiscal_year = 2021 THEN dp.product_code END) - 
+     COUNT(DISTINCT CASE WHEN fs.fiscal_year = 2020 THEN dp.product_code END)) AS difference
 FROM 
-(
-	#Returns joined table
-	SELECT segment, COUNT(DISTINCT product) AS product_count_2020 
-	FROM gdb023.dim_product AS dim_product
-	INNER JOIN gdb023.fact_sales_monthly AS montly_sales
-	USING(product_code)
-	WHERE fiscal_year = '2020'
-	GROUP BY segment
-	ORDER BY product_count_2020 DESC
-) as 2020_table
-INNER JOIN
-(
-	SELECT segment, COUNT(DISTINCT product) AS product_count_2021 
-	FROM gdb023.dim_product AS dim_product
-	INNER JOIN gdb023.fact_sales_monthly AS montly_sales
-	USING(product_code)
-	WHERE fiscal_year = '2021'
-	GROUP BY segment
-	ORDER BY product_count_2021 DESC
-) as 2021_table
-USING(segment)
-ORDER BY difference DESC;
+    dim_product dp
+JOIN 
+    fact_sales_monthly fs ON dp.product_code = fs.product_code
+GROUP BY 
+    dp.segment
+ORDER BY 
+    difference DESC;
 
 
 #############################################################################################################################################
+#Request 5: Get the products that have the highest and lowest manufacturing costs. 
+#	The final output should contain these fields, product_code product manufacturing_cost.
 
-#Request6: Generate a report which contains the top 5 customers who received an average high pre_invoice_discount_pct for the fiscal year 2021 and in the Indian market.
-# The final output contains these fields, customer_code customer average_discount_percentage
+SELECT 
+    fmc.product_code,
+    dp.product,
+    fmc.manufacturing_cost
+FROM 
+    fact_manufacturing_cost fmc
+JOIN 
+    dim_product dp ON fmc.product_code = dp.product_code
+WHERE 
+    fmc.manufacturing_cost = (SELECT MAX(manufacturing_cost) FROM fact_manufacturing_cost)
+    OR
+    fmc.manufacturing_cost = (SELECT MIN(manufacturing_cost) FROM fact_manufacturing_cost);
+
+#################################################################################################################################
+#Request 6: Generate a report which contains the top 5 customers who received an average high pre_invoice_discount_pct for the fiscal year 2021 and in the Indian market.
+#The final output contains these fields, customer_code customer average_discount_percentage
 
 #USING SUBQUERIES
 SELECT  customer_code, customer, ROUND(AVG(pre_invoice_discount_pct*100), 2) AS average_discount_percentage
@@ -144,7 +151,7 @@ GROUP BY date;
 #By using CTE
  WITH cte7 AS (SELECT date,MONTH(date) AS Month,sold_quantity FROM gdb023.fact_sales_monthly 
  WHERE fiscal_year=2020 )SELECT  CASE WHEN Month IN (9,10,11) THEN '1' 
-									   WHEN Month IN (12,1,2) THEN '2' 
+					WHEN Month IN (12,1,2) THEN '2' 
                                        WHEN Month IN (3,4,5) THEN '3 '
                                        WHEN Month IN (6,7,8) THEN '4' 
                                    END AS Quarter ,SUM(sold_quantity) AS total_sold_quantity   
@@ -208,36 +215,3 @@ FROM gdb023.fact_sales_monthly as monthly_sales
 INNER JOIN gdb023.dim_customer as dim_customer
 USING(customer_code)
 WHERE fiscal_year = '2021';
-
-
-#Request-6
-SELECT  customer_code, customer, ROUND(AVG(pre_invoice_discount_pct*100), 2) AS average_discount_percentage
-FROM
-(
-SELECT *
-FROM gdb023.dim_customer as dim_customer
-INNER JOIN gdb023.fact_pre_invoice_deductions as pre_invoice_deductions
-USING(customer_code)
-WHERE fiscal_year = '2021' and market = 'India'
-) as joint_table
-GROUP BY customer, customer_code
-ORDER BY average_discount_percentage DESC
-LIMIT 5;
-
-
-
-#Request-5
- SELECT  * FROM
-     (SELECT  p.product_code, p.product, m.manufacturing_cost FROM
-      gdb023.dim_product p INNER JOIN gdb023.fact_manufacturing_cost m ON p.product_code = m.product_code
-      ORDER BY manufacturing_cost DESC LIMIT 1) A 
- UNION 
- SELECT * FROM
-     (SELECT p.product_code, p.product, m.manufacturing_cost FROM
-     gdb023.dim_product p INNER JOIN gdb023.fact_manufacturing_cost m ON p.product_code = m.product_code
-     ORDER BY manufacturing_cost ASC
-     LIMIT 1) B;
-     
-SELECT  p.product_code, p.product, m.manufacturing_cost FROM
-      gdb023.dim_product p INNER JOIN gdb023.fact_manufacturing_cost m ON p.product_code = m.product_code
-      ORDER BY manufacturing_cost DESC LIMIT 1
