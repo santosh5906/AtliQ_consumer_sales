@@ -1,6 +1,6 @@
 # AtliQ_consumer_sales
  
-##Introduction
+## Introduction
 This project aims to provide insights related to the customer sales and revenue of AtliQ Hardware company. This will help the company to make quick and smart data-informed decisions. The insights are provided in response to the 10 business needs ad-hoc requests and also some additional analysis. 
 The analysis is represented in the form of tableau dashboard which is simple yet detailed hence easy to understand for non-tech peoples.
 Task:  
@@ -12,16 +12,16 @@ Imagine yourself as the applicant for this role and perform the following task
 3.    The target audience of this dashboard is top-level management - hence you need to create a presentation to show the insights.
 4.    Be creative with your presentation, audio/video presentation will have more weightage.
  
-##Technologies
+## Technologies
 1. SQL (MySQLWorkbench 8.0.30.CE)
 2. Tableau 2022.1
 
-##Database
+## Database
 MySqL database used for this project:
 [atliq_hardware_db.sql](https://github.com/santosh5906/AtliQ_consumer_sales/blob/26d7e89f2b115613e9bdf14f5480f94b291224e1/Atliq-Input%20for%20participants/atliq_hardware_db.sql)
 
 
-##Requests
+## Requests
 1. Provide the list of markets in which customer "Atliq Exclusive" operates its business in the APAC region.
 2. What is the percentage of unique product increase in 2021 vs. 2020? The final output contains these fields:
  unique_products_2020, unique_products_2021 and percentage_chg.
@@ -41,6 +41,6 @@ Month, Year and Gross sales Amount.
  channel, gross_sales_mln and percentage
 10. Get the Top 3 products in each division that have a high total_sold_quantity in the fiscal_year 2021? The final output contains these fields, division, product_code, product, total_sold_quantity and rank_order
 
-##Inspiration
+## Inspiration
 This project is based on the resume project challenge - 4 from codebasic
 [Provide Insights to Management in Consumer Goods Domain](https://codebasics.io/challenge/codebasics-resume-project-challenge#)
